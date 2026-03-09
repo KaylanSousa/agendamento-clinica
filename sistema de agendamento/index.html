@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agendamento - Alessandro Cunha</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:url("./imagens/clinicaimg.jfif");
+background-size:cover;
+background-position:center;
+min-height:100vh;
+padding:15px;
+}
+
+.wrapper{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.container{
+background:white;
+width:100%;
+max-width:420px;
+padding:25px;
+border-radius:18px;
+box-shadow:0 15px 35px rgba(0,0,0,0.2);
+animation:fadeIn .6s ease;
+}
+
+.logo{
+display:block;
+margin:0 auto 10px auto;
+max-width:180px;
+}
+
+h2{
+text-align:center;
+margin-bottom:20px;
+color:#6a11cb;
+font-size:22px;
+}
+
+label{
+font-size:14px;
+font-weight:bold;
+}
+
+input,select,textarea{
+width:100%;
+padding:14px;
+margin:8px 0 15px 0;
+border-radius:12px;
+border:1px solid #ddd;
+font-size:16px;
+}
+
+textarea{
+resize:none;
+height:80px;
+}
+
+input:focus,select:focus,textarea:focus{
+border-color:#6a11cb;
+outline:none;
+box-shadow:0 0 6px rgba(106,17,203,0.3);
+}
+
+button{
+width:100%;
+padding:15px;
+border:none;
+border-radius:14px;
+background:linear-gradient(90deg,#6a11cb,#ff6ec4);
+color:white;
+font-size:17px;
+font-weight:bold;
+cursor:pointer;
+transition:.2s;
+}
+
+button:active{
+transform:scale(.97);
+}
+
+.success{
+display:none;
+text-align:center;
+}
+
+.loader{
+display:none;
+margin:20px auto;
+width:35px;
+height:35px;
+border:4px solid #eee;
+border-top:4px solid #6a11cb;
+border-radius:50%;
+animation:spin .8s linear infinite;
+}
+
+.erro{
+color:red;
+font-size:13px;
+display:none;
+margin-bottom:10px;
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(15px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes spin{
+to{transform:rotate(360deg);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="container" id="formContainer">
+
+<img src="./imagens/logo_cortada.png" class="logo">
+
+<h2>Agendamento</h2>
+
+<form onsubmit="enviarWhatsApp(); return false;">
+
+<label>Nome</label>
+<input type="text" id="nome" required>
+
+<label>Telefone</label>
+<input type="text" id="telefone" maxlength="15" onkeyup="mascaraTelefone(this)" required>
+
+<label>CPF</label>
+<input type="text" id="cpf" maxlength="14" onkeyup="mascaraCPF(this)" required>
+
+<div class="erro" id="erroCPF">
+CPF inválido.
+</div>
+
+<label>Primeiro protocolo?</label>
+<select id="protocolo" required>
+<option value="">Selecione</option>
+<option>1º Protocolo</option>
+<option>2º Protocolo</option>
+<option>3º Protocolo</option>
+<option>4º Protocolo</option>
+<option>4 ou mais</option>
+</select>
+
+<label>Data</label>
+<input type="date" id="data" required>
+
+<div class="erro" id="erroData">
+Não atendemos domingos ou datas passadas.
+</div>
+
+<label>Horário</label>
+<select id="hora" required>
+<option value="">Selecione um horário</option>
+<option>08:30</option>
+<option>09:30</option>
+<option>10:30</option>
+<option>11:30</option>
+<option>14:30</option>
+</select>
+
+<label>Observações</label>
+<textarea id="obs" placeholder="Alguma informação importante..."></textarea>
+
+<button type="submit">Confirmar Agendamento</button>
+
+</form>
+</div>
+
+<div class="container success" id="successMessage">
+
+<img src="./imagens/logo_cortada.png" class="logo">
+
+<h2>Agendamento Enviado!</h2>
+
+<p>Redirecionando para o WhatsApp...</p>
+
+<div class="loader" id="loader"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const hoje=new Date().toISOString().split("T")[0];
+document.getElementById("data").setAttribute("min",hoje);
+
+function mascaraTelefone(campo){
+
+let valor=campo.value.replace(/\D/g,"");
+
+if(valor.length>10){
+valor=valor.replace(/^(\d{2})(\d{5})(\d{4}).*/,"($1) $2-$3");
+}else{
+valor=valor.replace(/^(\d{2})(\d{4})(\d{0,4}).*/,"($1) $2-$3");
+}
+
+campo.value=valor;
+}
+
+function mascaraCPF(campo){
+
+let valor=campo.value.replace(/\D/g,"");
+
+valor=valor.replace(/(\d{3})(\d)/,"$1.$2");
+valor=valor.replace(/(\d{3})(\d)/,"$1.$2");
+valor=valor.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+
+campo.value=valor;
+
+}
+
+function validarCPF(cpf){
+
+cpf=cpf.replace(/\D/g,"");
+
+if(cpf.length!==11||/^(\d)\1+$/.test(cpf)) return false;
+
+let soma=0;
+let resto;
+
+for(let i=1;i<=9;i++)
+soma=soma+parseInt(cpf.substring(i-1,i))*(11-i);
+
+resto=(soma*10)%11;
+
+if(resto===10||resto===11) resto=0;
+if(resto!==parseInt(cpf.substring(9,10))) return false;
+
+soma=0;
+
+for(let i=1;i<=10;i++)
+soma=soma+parseInt(cpf.substring(i-1,i))*(12-i);
+
+resto=(soma*10)%11;
+
+if(resto===10||resto===11) resto=0;
+
+if(resto!==parseInt(cpf.substring(10,11))) return false;
+
+return true;
+
+}
+
+function enviarWhatsApp(){
+
+var cpf=document.getElementById("cpf").value;
+var erroCPF=document.getElementById("erroCPF");
+
+if(!validarCPF(cpf)){
+erroCPF.style.display="block";
+return;
+}else{
+erroCPF.style.display="none";
+}
+
+var dataSelecionada=document.getElementById("data").value;
+var erro=document.getElementById("erroData");
+
+var dataObj=new Date(dataSelecionada);
+var hojeObj=new Date();
+
+hojeObj.setHours(0,0,0,0);
+
+if(!dataSelecionada||dataObj<hojeObj||dataObj.getDay()===0){
+erro.style.display="block";
+return;
+}else{
+erro.style.display="none";
+}
+
+var nome=document.getElementById("nome").value;
+var telefone=document.getElementById("telefone").value;
+var protocolo=document.getElementById("protocolo").value;
+var hora=document.getElementById("hora").value;
+var obs=document.getElementById("obs").value;
+
+var mensagem=`✨ Novo Agendamento
+
+Nome: ${nome}
+Telefone: ${telefone}
+CPF: ${cpf}
+Protocolo: ${protocolo}
+Data: ${dataSelecionada}
+Horário: ${hora}
+Observações: ${obs}`;
+
+var numeroClinica="5599982138084";
+
+document.getElementById("formContainer").style.display="none";
+document.getElementById("successMessage").style.display="block";
+document.getElementById("loader").style.display="block";
+
+setTimeout(function(){
+
+var url="https://wa.me/"+numeroClinica+"?text="+encodeURIComponent(mensagem);
+
+window.location.href=url;
+
+},2000);
+
+}
+
+</script>
+
+</body>
+</html>
