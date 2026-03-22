@@ -102,7 +102,7 @@ Data: ${dataSelecionada}
 Horário: ${hora}
 Observações: ${obs}`;
 
-var numeroClinica="5599982138084";
+var numeroClinica="5599981566923";
 
 document.getElementById("formContainer").style.display="none";
 document.getElementById("successMessage").style.display="block";
